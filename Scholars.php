@@ -15,7 +15,6 @@ $supervisors_result = $conn->query($supervisors_query);
 // Fetch advisory committee
 $advisory_query = "SELECT name, post FROM advisory_committee";
 $advisory_result = $conn->query($advisory_query);
-
 ?>
 
 <!DOCTYPE html>
@@ -25,16 +24,40 @@ $advisory_result = $conn->query($advisory_query);
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
+            background-color: #f8f9fa;
+        }
+        .top-section {
+    height: 50vh; /* Takes half of the viewport height */
+    background-image: url('https://pestrust.edu.in/pesitm/assets/front_end/images/background/ResearchCentreDetails.jpg'); /* Replace with your image path */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Align the text closer to the bottom */
+    color: white;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+    padding-bottom: 20px; /* Add spacing from the bottom */
+}
+.top-section h1 {
+    font-size: 3em;
+    margin: 0;
+}
+
+        .top-section h1 {
+            font-size: 3em;
+            margin: 0;
         }
         .container {
             padding: 20px;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: -50px auto 0 auto; /* Pulls content upwards slightly for overlap */
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        h1, h2, h3 {
+        h2, h3 {
             color: #007bff;
         }
         table {
@@ -82,48 +105,52 @@ $advisory_result = $conn->query($advisory_query);
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>Research Centre</h1>
+    <!-- Top Section with Background Image -->
+    <div class="top-section">
+        <h1>Research Centre</h1>
+    </div>
 
-    <!-- Supervisors and Scholars -->
-    <section>
-        <h2>Supervisors and Scholars</h2>
-        <p>Click on a supervisor's name to view the list of their scholars.</p>
-        <table>
-            <thead>
-            <tr>
-                <th>Supervisor Name</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php if ($supervisors_result->num_rows > 0): ?>
-                <?php while ($row = $supervisors_result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['name']); ?></td>
-                        <td>
-                            <a href="scholars.php?supervisor_id=<?= $row['id']; ?>" class="button">View Scholars</a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
+    <!-- Content Section -->
+    <div class="container">
+        <!-- Supervisors and Scholars -->
+        <section>
+            <h2>Supervisors and Scholars</h2>
+            <p>Click on a supervisor's name to view the list of their scholars.</p>
+            <table>
+                <thead>
                 <tr>
-                    <td colspan="2" class="no-data">No supervisors found</td>
+                    <th>Supervisor Name</th>
+                    <th>Actions</th>
                 </tr>
-            <?php endif; ?>
-            </tbody>
-        </table>
-    </section>
+                </thead>
+                <tbody>
+                <?php if ($supervisors_result->num_rows > 0): ?>
+                    <?php while ($row = $supervisors_result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['name']); ?></td>
+                            <td>
+                                <a href="scholars.php?supervisor_id=<?= $row['id']; ?>" class="button">View Scholars</a>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="2" class="no-data">No supervisors found</td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </section>
 
-    <?php
-    // Display scholars list if a supervisor is selected
-    if (isset($_GET['supervisor_id'])) {
-        $supervisor_id = intval($_GET['supervisor_id']);
-        $scholars_query = "SELECT scholar_name, phd_status FROM research_scholars WHERE supervisor_id = ?";
-        $stmt = $conn->prepare($scholars_query);
-        $stmt->bind_param("i", $supervisor_id);
-        $stmt->execute();
-        $scholars_result = $stmt->get_result();
+        <?php
+        // Display scholars list if a supervisor is selected
+        if (isset($_GET['supervisor_id'])) {
+            $supervisor_id = intval($_GET['supervisor_id']);
+            $scholars_query = "SELECT scholar_name, phd_status FROM research_scholars WHERE supervisor_id = ?";
+            $stmt = $conn->prepare($scholars_query);
+            $stmt->bind_param("i", $supervisor_id);
+            $stmt->execute();
+            $scholars_result = $stmt->get_result();
         ?>
 
         <section>
@@ -152,35 +179,35 @@ $advisory_result = $conn->query($advisory_query);
             </table>
             <a href="scholars.php" class="back-button">Back</a>
         </section>
-    <?php } ?>
+        <?php } ?>
 
-    <!-- Advisory Committee -->
-    <section>
-        <h2>Advisory Committee</h2>
-        <table>
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Post</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php if ($advisory_result->num_rows > 0): ?>
-                <?php while ($row = $advisory_result->fetch_assoc()): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['name']); ?></td>
-                        <td><?= htmlspecialchars($row['post']); ?></td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
+        <!-- Advisory Committee -->
+        <section>
+            <h2>Advisory Committee</h2>
+            <table>
+                <thead>
                 <tr>
-                    <td colspan="2" class="no-data">No advisory committee members found</td>
+                    <th>Name</th>
+                    <th>Post</th>
                 </tr>
-            <?php endif; ?>
-            </tbody>
-        </table>
-        <a href="index.php" class="back-button">Back</a>
-    </section>
-</div>
+                </thead>
+                <tbody>
+                <?php if ($advisory_result->num_rows > 0): ?>
+                    <?php while ($row = $advisory_result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['name']); ?></td>
+                            <td><?= htmlspecialchars($row['post']); ?></td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="2" class="no-data">No advisory committee members found</td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+            <a href="index.php" class="back-button">Back</a>
+        </section>
+    </div>
 </body>
 </html>

@@ -160,16 +160,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
                 <button type="submit" class="btn btn-block">Save</button>
             </form>
         <?php else: ?>
-            <p class="text-center text-muted">You have read-only access. You cannot add or modify records.</p>
-        <?php endif; ?>
 
-        <h2 class="mt-4">Existing Book Chapters</h2>
+        <?php endif; ?>
+  
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>
-                    <th>Teacher Name</th>
+                    <th>Chapter Author</th>
                     <th>Title</th>
-                    <th>Author</th>
+                    <th>Book Author</th>
                     <th>National/International</th>
                     <th>Year</th>
                     <th>ISBN/ISSN</th>

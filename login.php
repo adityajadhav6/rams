@@ -7,16 +7,17 @@ session_start();
 
 // Check for form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Viewer Login
     if (isset($_POST['viewer_login'])) {
-        // Viewer login - No password required
         $_SESSION['logged_in'] = true;
         $_SESSION['user_type'] = 'viewer';
 
-        // Redirect to index.php
+        // Redirect viewer to index.php
         header('Location: index.php');
         exit();
     }
 
+    // Admin Login
     if (isset($_POST['login'])) {
         $username = trim($_POST['username']);
         $password = md5(trim($_POST['password'])); // Using MD5 hashing for password
@@ -30,9 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $stmt->get_result();
 
             if ($result->num_rows > 0) {
-                // Successful login
+                // Successful admin login
                 $_SESSION['logged_in'] = true;
-                $_SESSION['user_type'] = 'admin'; // Set user type as admin
+                $_SESSION['user_type'] = 'admin';
+
+                // Redirect admin to index.php
                 header('Location: index.php');
                 exit();
             } else {
@@ -44,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body {
             margin: 0;
             padding: 0;
-            background-color: #ADD8E6;
+            background: url('About.jpg') no-repeat center center fixed;
+            background-size: cover;
             font-family: 'Roboto', sans-serif;
             color: #333;
             display: flex;
@@ -66,21 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.55);
             padding: 40px 30px;
             border-radius: 10px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             text-align: center;
-            animation: slideIn 0.8s ease-in-out;
+            animation: slideIn 0.5s ease-in-out;
         }
 
         @keyframes slideIn {
@@ -95,9 +94,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         h1 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
+            font-size: 2em;
+            font-weight: bold;
             color: #1e3c72;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #1e90ff, #1e3c72);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
         }
 
         .form-group {
@@ -109,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 8px;
             font-weight: bold;
             color: #555;
+            font-size: 1.2em;
         }
 
         .form-group input {
@@ -117,10 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            font-size: 1em;
+            font-size: 1.2em;
         }
 
         .button {
+            width: 200px;
             padding: 10px 20px;
             background-color: #1e90ff;
             color: #fff;
@@ -132,6 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: background-color 0.3s, transform 0.3s;
             border: none;
             cursor: pointer;
+            text-align: center;
         }
 
         .button:hover {

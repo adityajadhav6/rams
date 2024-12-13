@@ -4,21 +4,18 @@ include 'db/connection.php'; // Ensure this includes your database connection
 
 // Check if the user is logged in and has the right permissions
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    // Redirect to login if not logged in
     header('Location: login.php');
     exit();
 }
 
-// Check if the user is a viewer
 $isViewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer';
 
-// Ensure the database connection is established
 if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
+// Handle form submission for adding a book
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer && isset($_POST['add_book'])) {
     $teacher_name = $_POST['teacher_name'];
     $title = $_POST['title'];
     $national_international = $_POST['national_international'];
@@ -26,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
     $isbn = $_POST['isbn'];
     $publisher = $_POST['publisher'];
 
-    // Prepare the SQL query to insert a new book
     $stmt = $conn->prepare("INSERT INTO books (teacher_name, title, national_international, year, isbn, publisher) VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sssiss", $teacher_name, $title, $national_international, $year, $isbn, $publisher);
 
@@ -37,6 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
     }
     $stmt->close();
 }
+
+// Handle search functionality
+$searchYear = isset($_GET['year']) ? $_GET['year'] : '';
+$searchTeacher = isset($_GET['teacher_name']) ? $_GET['teacher_name'] : '';
+$query = "SELECT * FROM books WHERE 1=1";
+
+if ($searchYear !== '') {
+    $query .= " AND year = " . intval($searchYear);
+}
+
+if ($searchTeacher !== '') {
+    $query .= " AND teacher_name LIKE '%" . $conn->real_escape_string($searchTeacher) . "%'";
+}
+
+$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -46,138 +57,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Books - Research Centre Management</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #ece9e6, #ffffff);
-            padding: 20px;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        h1, h2 {
-            text-align: center;
-            color: #007bff;
-            animation: slideIn 1s ease-in-out;
-        }
-
-        .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        table {
-            margin-top: 20px;
-            width: 100%;
-            border-collapse: collapse;
-            animation: fadeInUp 1s ease-in-out;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        tr:hover {
-            background-color: #f1f1f1;
-            transition: background-color 0.3s ease;
-        }
-
-        form {
-            margin-top: 20px;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            animation: slideIn 1s ease-in-out;
-        }
-
-        input, select, button {
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
-
-        .alert {
-            animation: fadeInDown 1s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeInDown {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <h1>Books</h1>
 
+        <!-- Search Form -->
+        <form method="get" action="" class="form-inline mb-4">
+            <div class="form-group mr-2">
+                <input type="text" name="teacher_name" class="form-control" placeholder="Search by Teacher Name" value="<?php echo htmlspecialchars($searchTeacher); ?>">
+            </div>
+            <div class="form-group mr-2">
+                <input type="number" name="year" class="form-control" placeholder="Search by Year" value="<?php echo htmlspecialchars($searchYear); ?>">
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <!-- Add Book Form -->
         <?php if (!$isViewer): ?>
             <form method="post" action="">
+                <input type="hidden" name="add_book" value="1">
                 <div class="form-group">
                     <label for="teacher_name">Name of the Teacher:</label>
                     <input type="text" id="teacher_name" name="teacher_name" class="form-control" required>
@@ -207,15 +106,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Save</button>
             </form>
-        <?php else: ?>
-            <p class="text-center text-muted">You have read-only access. You cannot add or modify records.</p>
         <?php endif; ?>
 
-        <h2 class="mt-4">Existing Books</h2>
+        <!-- Books Table -->
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>
-                    <th>Teacher Name</th>
+                    <th>Author</th>
                     <th>Title</th>
                     <th>National/International</th>
                     <th>Year</th>
@@ -228,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
             </thead>
             <tbody>
                 <?php
-                $result = $conn->query("SELECT * FROM books");
                 if ($result && $result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr>

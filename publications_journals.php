@@ -142,10 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
                 <button type="submit" class="btn btn-primary btn-block">Save</button>
             </form>
         <?php else: ?>
-            <p class="text-center text-muted">You have read-only access. You cannot add or modify records.</p>
+            
         <?php endif; ?>
 
-        <h2 class="mt-4">Existing Journals</h2>
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>

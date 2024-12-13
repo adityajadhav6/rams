@@ -16,6 +16,28 @@ include 'db/connection.php';
             margin: 0;
             padding: 0;
             background: linear-gradient(to right, #ece9e6, #ffffff);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+        }
+
+        .top-section {
+            height: 50vh; /* Half the viewport height */
+            background-image: url('PHOTO-2024-12-14-00-37-25.jpg'); /* Replace with the path to your image */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Align text towards the bottom */
+            color: white;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);
+            padding-bottom: 20px; /* Adjust spacing from the bottom */
+        }
+
+        .top-section h1 {
+            font-size: 3em;
+            margin: 0;
         }
 
         h1 {
@@ -27,22 +49,26 @@ include 'db/connection.php';
 
         .tabs {
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center;
             margin-top: 30px;
             animation: fadeIn 1s ease-in-out;
+            padding: 0 10px;
         }
 
         .tab {
-            padding: 15px 30px;
-            margin: 0 10px;
+            padding: 20px 40px;
+            margin: 10px 0;
             background: linear-gradient(to right, #007bff, #0056b3);
             color: #fff;
             border-radius: 50px;
             text-decoration: none;
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: 500;
+            text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s, background 0.3s;
+            width: 180px;
         }
 
         .tab:hover {
@@ -72,18 +98,25 @@ include 'db/connection.php';
             color: #007bff;
         }
 
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
         .back-button {
             display: inline-block;
-            margin: 20px auto;
-            padding: 10px 20px;
+            padding: 20px 40px;
             background: linear-gradient(to right, #6c757d, #5a6268);
             color: #fff;
             border-radius: 50px;
             text-decoration: none;
-            font-size: 1em;
-            font-weight: 500;
-            transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1.5em;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
         .back-button:hover {
@@ -125,17 +158,26 @@ include 'db/connection.php';
     </style>
 </head>
 <body>
-    <h1>Publications</h1>
+    <!-- Top Section with Background Image -->
+    <div class="top-section">
+        <h1></h1>
+    </div>
+
+    <!-- Tabs Section -->
     <div class="tabs">
         <a href="publications_books.php" class="tab <?php echo basename($_SERVER['PHP_SELF']) == 'publications_books.php' ? 'active' : ''; ?>">Books</a>
         <a href="publications_book_chapters.php" class="tab <?php echo basename($_SERVER['PHP_SELF']) == 'publications_book_chapters.php' ? 'active' : ''; ?>">Book Chapters</a>
         <a href="publications_journals.php" class="tab <?php echo basename($_SERVER['PHP_SELF']) == 'publications_journals.php' ? 'active' : ''; ?>">Journals</a>
         <a href="publications_conferences.php" class="tab <?php echo basename($_SERVER['PHP_SELF']) == 'publications_conferences.php' ? 'active' : ''; ?>">Conferences</a>
     </div>
+
+    <!-- Content Section -->
     <div class="content">
         <p>Welcome to the Research Centre Management System. Select a category above to manage or view publications.</p>
     </div>
-    <div class="text-center">
+
+    <!-- Back Button Centered -->
+    <div class="back-button-container">
         <a href="index.php" class="back-button">Back to Home</a>
     </div>
 </body>
