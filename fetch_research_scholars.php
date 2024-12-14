@@ -1,11 +1,8 @@
 <?php
 include 'db/connection.php';
 
-// Check if supervisor_id is passed in the URL
 if (isset($_GET['supervisor_id']) && is_numeric($_GET['supervisor_id'])) {
-    $supervisorId = intval($_GET['supervisor_id']); // Ensure supervisor ID is an integer
-
-    // Fetch the supervisor's name
+    $supervisorId = intval($_GET['supervisor_id']);
     $supervisorQuery = "SELECT name FROM supervisors WHERE id = ?";
     $stmtSupervisor = $conn->prepare($supervisorQuery);
     $stmtSupervisor->bind_param("i", $supervisorId);
@@ -14,97 +11,164 @@ if (isset($_GET['supervisor_id']) && is_numeric($_GET['supervisor_id'])) {
 
     if ($supervisorResult && $supervisorResult->num_rows > 0) {
         $supervisor = $supervisorResult->fetch_assoc();
-        echo "<h2>Research Scholars for Supervisor: " . htmlspecialchars($supervisor['name'], ENT_QUOTES, 'UTF-8') . "</h2>";
     } else {
-        echo "<p style='color: red;'>Invalid supervisor ID. Redirecting...</p>";
-        header("Refresh: 3; URL=supervisor.php"); // Redirect after 3 seconds
+        header("Refresh: 3; URL=supervisor.php");
         exit();
     }
 
-    // Fetch the research scholars related to the selected supervisor
     $query = "SELECT * FROM research_scholars WHERE supervisor_id = ?";
     $stmt = $conn->prepare($query);
-
-    if ($stmt === false) {
-        die("<p style='color: red;'>Error preparing the query: " . htmlspecialchars($conn->error, ENT_QUOTES, 'UTF-8') . "</p>");
-    }
-
     $stmt->bind_param("i", $supervisorId);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    // Back to Supervisor Page Button
-    echo "<div style='margin-bottom: 20px; text-align: right;'>
-            <a href='supervisor.php' style='text-decoration: none;'>
-                <button style='
-                    background-color: #007bff; 
-                    color: white; 
-                    padding: 10px 20px; 
-                    border: none; 
-                    border-radius: 5px; 
-                    font-size: 16px; 
-                    cursor: pointer; 
-                    transition: background-color 0.3s ease;'
-                    onmouseover=\"this.style.backgroundColor='#0056b3'\"
-                    onmouseout=\"this.style.backgroundColor='#007bff'\"
-                >
-                    Back to Supervisors
-                </button>
-            </a>
-          </div>";
-
-    // Display the research scholars data in a table
-    if ($result && $result->num_rows > 0) {
-        echo "<table class='research-scholar-table' style='width: 100%; border-collapse: collapse;'>
-                <tr style='background-color: #f2f2f2;'>
-                    <th style='border: 1px solid #ddd; padding: 8px;'>Name of the Research Scholar</th>
-                    <th style='border: 1px solid #ddd; padding: 8px;'>Ph.D Status</th>
-                    <th style='border: 1px solid #ddd; padding: 8px;'>Actions</th>
-                </tr>";
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr>
-                    <td style='border: 1px solid #ddd; padding: 8px;'>" . htmlspecialchars($row['scholar_name'], ENT_QUOTES, 'UTF-8') . "</td>
-                    <td style='border: 1px solid #ddd; padding: 8px;'>" . htmlspecialchars($row['phd_status'], ENT_QUOTES, 'UTF-8') . "</td>
-                    <td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>
-                        <a href='edit_research_scholar.php?id=" . intval($row['id']) . "' style='color: #007bff; text-decoration: none;'>Edit</a> | 
-                        <a href='delete_research_scholar.php?id=" . intval($row['id']) . "' style='color: #dc3545; text-decoration: none;' onclick='return confirm(\"Are you sure you want to delete this scholar?\");'>Delete</a>
-                    </td>
-                  </tr>";
-        }
-        echo "</table>";
-    } else {
-        echo "<p>No research scholars found for this supervisor.</p>";
-    }
-
-    // Form to add a new scholar
-    echo "<h3>Add a New Research Scholar</h3>";
-    echo "<form action='save_research_scholar.php' method='POST' style='margin-top: 20px;'>
-            <input type='hidden' name='supervisor_id' value='$supervisorId'>
-            <input type='text' name='research_scholar_name' placeholder='Research Scholar Name' required style='padding: 8px; margin-bottom: 10px; width: calc(100% - 16px); border: 1px solid #ddd; border-radius: 5px;'>
-            <select name='phd_status' required style='padding: 8px; margin-bottom: 10px; width: calc(100% - 16px); border: 1px solid #ddd; border-radius: 5px;'>
-                <option value='Completed'>Completed</option>
-                <option value='Thesis submitted'>Thesis submitted</option>
-                <option value='Course Work Completed'>Course Work Completed</option>
-                <option value='Applied for Course Work'>Applied for Course Work</option>
-                <option value='Registered'>Registered</option>
-            </select>
-            <button type='submit' style='
-                background-color: #28a745; 
-                color: white; 
-                padding: 10px 20px; 
-                border: none; 
-                border-radius: 5px; 
-                font-size: 16px; 
-                cursor: pointer; 
-                transition: background-color 0.3s ease;'
-                onmouseover=\"this.style.backgroundColor='#218838'\"
-                onmouseout=\"this.style.backgroundColor='#28a745'\"
-            >
-                Add Research Scholar
-            </button>
-          </form>";
 } else {
-    header("Location:supervisor.php");
+    header("Location: supervisor.php");
     exit();
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Scholars</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 1.5em;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #007bff;
+            color: white;
+            text-align: left;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        table tr:hover {
+            background-color: #e9ecef;
+        }
+        form input, form select, form button {
+            margin-bottom: 15px;
+            padding: 10px;
+            width: calc(100% - 20px);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        form button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        form button:hover {
+            background-color: #218838;
+        }
+        .card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Research Scholars for Supervisor: <?= htmlspecialchars($supervisor['name'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h3>Research Scholars</h3>
+            <?php if ($result && $result->num_rows > 0): ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scholar Name</th>
+                            <th>Ph.D Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['scholar_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($row['phd_status'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td>
+                                    <a href="edit_research_scholar.php?id=<?= intval($row['id']) ?>" class="button">Edit</a>
+                                    <a href="delete_research_scholar.php?id=<?= intval($row['id']) ?>" class="button" style="background-color: #dc3545;" onclick="return confirm('Are you sure?')">Delete</a>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p>No research scholars found for this supervisor.</p>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <h3>Add New Research Scholar</h3>
+            <form action="save_research_scholar.php" method="POST">
+                <input type="hidden" name="supervisor_id" value="<?= $supervisorId ?>">
+                <input type="text" name="research_scholar_name" placeholder="Scholar Name" required>
+                <select name="phd_status" required>
+                    <option value="Completed">Completed</option>
+                    <option value="Thesis Submitted">Thesis Submitted</option>
+                    <option value="Course Work Completed">Course Work Completed</option>
+                    <option value="Applied for Course Work">Applied for Course Work</option>
+                    <option value="Registered">Registered</option>
+                </select>
+                <button type="submit">Add Scholar</button>
+            </form>
+        </div>
+        <div style="text-align: center;">
+            <a href="supervisor.php" class="button" style="background-color: #6c757d;">Back to Supervisors</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -10,6 +10,10 @@ if (!isset($_SESSION['logged_in'])) {
 
 // Check if the user is a viewer
 $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer';
+
+// Handle search functionality
+$search_name = $_GET['search_name'] ?? '';
+$search_year = $_GET['search_year'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -27,7 +31,6 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
             background-color: #f7f7f7;
         }
 
-        /* Header with Background Image */
         .header {
             background: url('PHOTO-2024-12-14-00-29-02.jpg') no-repeat center center/cover;
             height: 200px;
@@ -71,6 +74,10 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
             margin-top: 40px;
         }
 
+        .search-form {
+            margin-bottom: 20px;
+        }
+
         .nav-tabs .nav-link {
             font-weight: bold;
             color: #007bff;
@@ -98,17 +105,22 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
             font-weight: bold;
         }
 
-        .table-bordered td, .table-bordered th {
-            border: 1px solid #ddd;
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            width: 150px;
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
         }
 
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #f9f9f9;
-        }
-
-        .search-bar {
-            margin-top: 20px;
-            margin-bottom: 20px;
+        .back-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -123,6 +135,20 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
 <a href="index.php" class="home-button">Home</a>
 
 <div class="container mt-4">
+    <form method="GET" class="search-form">
+        <div class="form-row">
+            <div class="col-md-5">
+                <input type="text" name="search_name" class="form-control" placeholder="Search by Name" value="<?php echo htmlspecialchars($search_name); ?>">
+            </div>
+            <div class="col-md-5">
+                <input type="text" name="search_year" class="form-control" placeholder="Search by Year" value="<?php echo htmlspecialchars($search_year); ?>">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-block">Search</button>
+            </div>
+        </div>
+    </form>
+
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" data-toggle="tab" href="#published">Patents Published</a>
@@ -152,7 +178,15 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM patents WHERE type = 'published'");
+                    $query = "SELECT * FROM patents WHERE type = 'published'";
+                    if ($search_name) {
+                        $query .= " AND teacher_name LIKE '%" . $conn->real_escape_string($search_name) . "%'";
+                    }
+                    if ($search_year) {
+                        $query .= " AND year = '" . $conn->real_escape_string($search_year) . "'";
+                    }
+                    $result = $conn->query($query);
+
                     if ($result && $result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
                             echo "<tr>
@@ -197,7 +231,15 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM patents WHERE type = 'granted'");
+                    $query = "SELECT * FROM patents WHERE type = 'granted'";
+                    if ($search_name) {
+                        $query .= " AND teacher_name LIKE '%" . $conn->real_escape_string($search_name) . "%'";
+                    }
+                    if ($search_year) {
+                        $query .= " AND year = '" . $conn->real_escape_string($search_year) . "'";
+                    }
+                    $result = $conn->query($query);
+
                     if ($result && $result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
                             echo "<tr>
@@ -224,6 +266,9 @@ $is_viewer = isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer
         </div>
     </div>
 </div>
+
+<!-- Back Button -->
+<a href="index.php" class="back-button">Back</a>
 
 </body>
 </html>

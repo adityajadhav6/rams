@@ -12,14 +12,13 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 $isViewer = (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'viewer');
 
 // Handle form submission for adding new journal entries
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer && isset($_POST['add_journal'])) {
     $title = $_POST['title'];
     $author = $_POST['author'];
     $publisher = $_POST['publisher'];
     $year_of_publication = $_POST['year_of_publication'];
     $issn_number = $_POST['issn_number'];
 
-    // Prepare an SQL statement for inserting the data
     $stmt = $conn->prepare("INSERT INTO journals (title, author, publisher, year_of_publication, issn) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssis", $title, $author, $publisher, $year_of_publication, $issn_number);
 
@@ -30,6 +29,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
     }
     $stmt->close();
 }
+
+// Handle search functionality
+$searchYear = $_GET['search_year'] ?? '';
+$searchAuthor = $_GET['search_author'] ?? '';
+
+$query = "SELECT * FROM journals WHERE 1=1";
+
+if (!empty($searchYear)) {
+    $query .= " AND year_of_publication = '" . $conn->real_escape_string($searchYear) . "'";
+}
+if (!empty($searchAuthor)) {
+    $query .= " AND author LIKE '%" . $conn->real_escape_string($searchAuthor) . "%'";
+}
+
+$result = $conn->query($query);
 ?>
 
 <!DOCTYPE html>
@@ -50,16 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            animation: fadeIn 0.8s ease-in-out;
         }
         h1 {
             color: #343a40;
             text-align: center;
-            animation: slideIn 0.8s ease-in-out;
-        }
-        table {
-            margin-top: 20px;
-            animation: fadeIn 0.8s ease-in-out;
         }
         .form-group label {
             font-weight: bold;
@@ -67,48 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
         }
         .btn {
             margin-top: 10px;
-            transition: all 0.3s ease-in-out;
         }
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            border: none;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
+        .btn-primary:hover, .btn-secondary:hover {
             transform: translateY(-2px);
         }
         table thead {
             background-color: #007bff;
             color: white;
-        }
-        table tbody tr:hover {
-            background-color: #f1f3f5;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(-10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
     </style>
 </head>
@@ -119,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
         <!-- Display the form only if the user is not a viewer -->
         <?php if (!$isViewer): ?>
             <form method="post" action="">
+                <input type="hidden" name="add_journal" value="1">
                 <div class="form-group">
                     <label for="title">Journal Title:</label>
                     <input type="text" id="title" name="title" class="form-control" required>
@@ -141,11 +115,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Save</button>
             </form>
-        <?php else: ?>
-            
         <?php endif; ?>
 
-        <table class="table table-bordered table-hover">
+        <!-- Search Form -->
+        <form method="get" class="mt-4">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="search_year">Search by Year:</label>
+                    <input type="number" id="search_year" name="search_year" class="form-control" value="<?= htmlspecialchars($searchYear) ?>">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="search_author">Search by Author:</label>
+                    <input type="text" id="search_author" name="search_author" class="form-control" value="<?= htmlspecialchars($searchAuthor) ?>">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Search</button>
+        </form>
+
+        <!-- Journals Table -->
+        <table class="table table-bordered table-hover mt-4">
             <thead>
                 <tr>
                     <th>Journal Title</th>
@@ -160,7 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
             </thead>
             <tbody>
                 <?php
-                $result = $conn->query("SELECT * FROM journals");
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr>
@@ -183,6 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$isViewer) {
                 ?>
             </tbody>
         </table>
+
+        <!-- Back Button -->
         <div class="text-center mt-4">
             <a href="publications.php" class="btn btn-secondary">Back to Publications</a>
         </div>
